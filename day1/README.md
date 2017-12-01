@@ -21,6 +21,7 @@ For example:
 1234 produces 0 because no digit matches the next.
 91212129 produces 9 because the only digit that matches the next one is the last digit, 9.
 What is the solution to your captcha?
+Result: 1044
 
 
 
