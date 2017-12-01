@@ -23,6 +23,29 @@
   [s]
   (inverse-captcha (seq s)))
 
+(defn rotate-by
+  "Rotate a sequence a number of times"
+  [s cnt]
+  (if (<= cnt 0)
+    s
+    (rotate-by (concat (rest s) (list (first s)))
+               (dec cnt))))
+
+(defn inverse-rotated-captcha
+  "Compute inverse rotated captcha from a seq of integer characters"
+  [s]
+  (let [shifted (rotate-by s (/ (count s) 2))
+        zipped (map list s shifted)]
+    (reduce sum-if-same 0 zipped)))
+
+(defn inverse-rotated-captcha-string
+  "Compute inverse rotated captcha from a string"
+  [s]
+  (inverse-rotated-captcha (seq s)))
+
+(defn part1 [s] (inverse-captcha-string s))
+(defn part2 [s] (inverse-rotated-captcha-string s))
+
 (defn -main
   "AOC Day 1 entrypoint"
   [& args]
@@ -32,5 +55,6 @@
       first
       slurp
       string/trim
-      inverse-captcha-string
+      ;; part1
+      part2
       println)))
