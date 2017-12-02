@@ -15,6 +15,20 @@
       (map #(- (last %) (first %)))
       (reduce +))))
 
+(defn div-checksum
+  "Compute division-based checksum of spreadsheet"
+  [input]
+  (let [lines (string/split input #"\n")]
+    (->> lines
+      (map #(string/split % #"\s+"))
+      (map #(map (fn [x] (Integer. x)) %))
+      (map #(for [x % y %] (list x y)))
+      (map #(remove (fn [[x y]] (= x y)) %))
+      (map #(filter (fn [[x y]] (= 0 (mod x y))) %))
+      (map first)
+      (map (fn [[x y]] (/ x y)))
+      (reduce +))))
+
 (defn -main
   "AOC Day 2 entrypoint"
   [& args]
@@ -24,4 +38,5 @@
                   first
                   slurp
                   string/trim)]
-      (println "Part 1: " (checksum input)))))
+      (println "Part 1: " (checksum input))
+      (println "Part 2: " (div-checksum input)))))
