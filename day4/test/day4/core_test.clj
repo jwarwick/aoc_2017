@@ -8,5 +8,12 @@
          (is (= true (valid? "aa bb cc dd aaa"))))
 
 (deftest part1-count
-         (is (= 2 (count-valid "aa bb cc dd ee\naa bb cc dd aa\naa bb cc dd aaa\n"))))
+         (is (= 2 (count-valid valid? "aa bb cc dd ee\naa bb cc dd aa\naa bb cc dd aaa\n"))))
+
+(deftest part2
+         (is (= true (valid-anagram? "abcde fghij")))
+         (is (= false (valid-anagram? "abcde xyz ecdab")))
+         (is (= true (valid-anagram? "a ab abc abd abf abj")))
+         (is (= true (valid-anagram? "iiii oiii ooii oooi oooo")))
+         (is (= false (valid-anagram? "oiii ioii iioi iiio"))))
 

@@ -4,6 +4,15 @@
     [clojure.string :as string])
   (:gen-class))
 
+(defn valid-anagram?
+  "Is the given passphrase string valid (ie no anagram duplicate words)"
+  [passphrase]
+  (let [pass-list (string/split passphrase #"\s+")
+        distinct-list (->> pass-list
+                        (map sort)
+                        distinct)]
+  (= (count pass-list) (count distinct-list))))
+
 (defn valid?
   "Is the given passphrase string valid (ie no duplicate words)"
   [passphrase]
@@ -13,10 +22,10 @@
 
 (defn count-valid
   "Number of valid passphrase in input"
-  [input]
+  [cmp input]
   (let [phrases (string/split input #"\n")]
     (->> phrases
-      (filter valid?)
+      (filter cmp)
       count)))
 
 (defn -main
@@ -28,4 +37,5 @@
                   first
                   slurp
                   string/trim)]
-      (println "Part 1: " (count-valid input)))))
+      (println "Part 1:" (count-valid valid? input))
+      (println "Part 2:" (count-valid valid-anagram? input)))))
