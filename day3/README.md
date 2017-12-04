@@ -55,4 +55,4 @@ What is the first value written that is larger than your puzzle input?
 
 Your puzzle input is still `347991`.
 
-*Result: X*
+*Result: 349975*
