@@ -4,16 +4,26 @@
     [clojure.string :as string])
   (:gen-class))
 
+(defn part1-inc [value] inc)
+
+(defn part2-inc
+  "Decrease curr value if value is 3 or more, otherwise increase curr value"
+  [value]
+  (if (>= value 3)
+    dec
+    inc))
+
 (defn take-step
   "Move the PC and increment the current value at the PC"
-  [pc jumps]
-  (let [new-pc (+ pc (nth jumps pc))
-       new-jumps (update-in jumps [pc] inc)]
+  [update-fn pc jumps]
+  (let [offset (nth jumps pc)
+        new-pc (+ pc offset)
+       new-jumps (update-in jumps [pc] (update-fn offset))]
    [new-pc new-jumps])) 
 
 (defn steps-to-outside
   "Number of steps until jump list is exited"
-  [input]
+  [update-fn input]
   (let [jumps-str (string/split input #"\n")
         jumps-vec (->> jumps-str
                     (map #(Integer/parseInt %))
@@ -22,9 +32,9 @@
     (loop [jumps jumps-vec
            pc 0
            cnt 0]
-      (if (or (< pc 0) (>= pc vec-len) (> cnt 1000000))
+      (if (or (< pc 0) (>= pc vec-len) (> cnt 50000000))
         cnt
-        (let [[new-pc new-vec] (take-step pc jumps)]
+        (let [[new-pc new-vec] (take-step update-fn pc jumps)]
           (recur new-vec new-pc (inc cnt)))))))
 
 (defn -main
@@ -36,4 +46,5 @@
                   first
                   slurp
                   string/trim)]
-      (println "Part 1:" (steps-to-outside input)))))
+      (println "Part 1:" (steps-to-outside part1-inc input))
+      (println "Part 2:" (steps-to-outside part2-inc input)))))
