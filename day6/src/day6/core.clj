@@ -51,6 +51,13 @@
         (let [new-mem (reallocate memory input-len)]
           (recur (inc cnt) new-mem (conj acc (vals new-mem))))))))
 
+(defn get-cycle-count
+  [target v]
+  (let [value-idx (map-indexed vector v)
+        value-filt (filter #(= target (second %)) value-idx)
+        idxs (map first value-filt)]
+    (- (second idxs) (first idxs))))
+
 (defn -main
   "AOC Day 6 entrypoint"
   [& args]
@@ -62,4 +69,6 @@
                   string/trim)]
       (let [[cnt, acc] (reallocate-count input)]
         (println "Part 1:" cnt)
-        (println "Part 2: tbd")))))
+        (let [cycles (get-cycle-count (last acc) acc)]
+          (println "Part 2:" cycles))))))
+
