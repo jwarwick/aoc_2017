@@ -50,23 +50,6 @@
     (action inst reg)
     reg))
 
-(defn exec
-  "Execute the given instructions"
-  [i r]
-  (loop [insts i
-         reg r]
-    (if (empty? insts)
-      reg
-      (let [new-reg (my-eval (first insts) reg)]
-        (recur (rest insts) new-reg)))))
-
-(defn run
-  "Parse and run the program, return register map"
-  [input]
-  (let [lines (string/split input #"\n")
-        insts (map parse-instruction lines)]
-    (exec insts {})))
-
 (defn max-register
   "Return the largest value in any register"
   [reg]
@@ -74,6 +57,33 @@
     vals
     sort
     last))
+
+(defn find-max
+  [curr-max reg]
+  (let [m (max-register reg)]
+    (cond
+      (nil? curr-max) m
+      (> m curr-max) m
+      :else curr-max)))
+
+(defn exec
+  "Execute the given instructions"
+  [i r]
+  (loop [insts i
+         reg r
+         max-val nil]
+    (if (empty? insts)
+      [reg max-val]
+      (let [new-reg (my-eval (first insts) reg)
+            new-max (find-max max-val reg)]
+        (recur (rest insts) new-reg new-max)))))
+
+(defn run
+  "Parse and run the program, return register map"
+  [input]
+  (let [lines (string/split input #"\n")
+        insts (map parse-instruction lines)]
+    (exec insts {})))
 
 (defn -main
   "AOC Day 8 entrypoint"
@@ -84,7 +94,7 @@
                   first
                   slurp
                   string/trim)]
-      (let [reg (run input)
+      (let [[reg max-ever] (run input)
             max-val (max-register reg)]
         (println "Part 1:" max-val)
-        (println "Part 2: TBD")))))
+        (println "Part 2:" max-ever)))))

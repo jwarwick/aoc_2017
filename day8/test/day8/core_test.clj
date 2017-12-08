@@ -9,6 +9,10 @@ c dec -10 if a >= 1
 c inc -20 if c == 10")
 
 (deftest part1
-         (let [reg (run sample-input)
+         (let [[reg max-ever] (run sample-input)
                max-val (max-register reg)]
            (is (= 1 max-val))))
+
+(deftest part2
+         (let [[reg max-ever] (run sample-input)]
+           (is (= 10 max-ever))))
