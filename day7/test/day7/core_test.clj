@@ -21,3 +21,8 @@
          (let [tree (build-tree part1-test-input)
                r (root tree)]
            (is (= "tknk" r))))
+
+(deftest part2
+         (let [tree (build-tree part1-test-input)
+               r (root tree)]
+           (is (= 60 (corrected-weight tree root)))))

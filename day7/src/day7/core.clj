@@ -58,6 +58,42 @@
         delta (data/diff nodes children)]
     (first (first delta))))
 
+(defn update-node-weights
+  [node child-weights]
+  (let [total (reduce + (:weight node) child-weights)]
+    (assoc node :total-weight total :child-weights child-weights)))
+
+(defn update-node
+  [tree n]
+  (let [node (tree n)]
+    (if (nil? (:children node))
+      (assoc tree n (update-node-weights node []))
+      (loop [children (:children node)
+             curr-tree tree]
+        (if (empty? children)
+          (let [child-weights (map :total-weight (map curr-tree (:children node)))]
+            (assoc curr-tree n (update-node-weights node child-weights)))
+          (recur (rest children) (update-node curr-tree (first children))))))))
+
+(defn propagate-weights
+  "Travel back out the tree and find where the weights are incorrect"
+  [tree n target-weight]
+  (let [node (tree n)
+        freqs (frequencies (:child-weights node))]
+    (if (= 1 (count freqs))
+      (- (:weight node) (- (:total-weight node) target-weight))
+      (let [sorted (sort-by val freqs)
+            new-target (key (last sorted))
+            new-node-idx (.indexOf (:child-weights node) (key (first sorted)))
+            new-node (nth (:children node) new-node-idx)]
+        (propagate-weights tree new-node new-target)))))
+      
+(defn corrected-weight
+  "Assuming one weight is wrong, what should the correct weight be"
+  [tree root]
+  (let [tree-sums (update-node tree root)]
+    (propagate-weights tree-sums root 0)))
+
 (defn -main
   "AOC Day 7 entrypoint"
   [& args]
@@ -68,6 +104,7 @@
                   slurp
                   string/trim)]
       (let [tree (build-tree input)
-            r (root tree)]
+            r (root tree)
+            cw (corrected-weight tree r)]
         (println "Part 1:" r)
-        (println "Part 2: tbd")))))
+        (println "Part 2:" cw)))))
