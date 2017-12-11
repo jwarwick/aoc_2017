@@ -31,23 +31,66 @@
 
 (defn make-hash
   "Hash a string for a given list of lengths"
+  ([start-lengths string-len] (make-hash start-lengths (vec (range 0 string-len)) 0 0))
+  ([start-lengths start-string start-pos start-skip]
+   (let [string-len (count start-string)]
+     (loop [lengths start-lengths
+            string start-string
+            curr-pos start-pos
+            skip-size start-skip]
+       (if (empty? lengths)
+         [string curr-pos skip-size]
+         (let [new-string (step string (first lengths) curr-pos)
+               new-pos (mod (+ curr-pos (first lengths) skip-size) string-len)
+               new-skip (inc skip-size)]
+           (recur (rest lengths) new-string new-pos new-skip)))))))
+
+(defn make-hash-string
   [input-str string-len]
   (let [start-lengths (->> (string/split input-str #"\,")
                   (map string/trim)
                   (map #(Integer/parseInt %)))
-        start-string (vec (range 0 string-len))]
-    (loop [lengths start-lengths
-           string start-string
-           curr-pos 0
-           skip-size 0
-           ]
-      (if (empty? lengths)
-        string
-        (recur (rest lengths)
-               (step string (first lengths) curr-pos)
-               (mod (+ curr-pos (first lengths) skip-size) string-len)
-               (inc skip-size))))))
+        [result curr skip] (make-hash start-lengths string-len)]
+    result))
 
+(defn sparse-hash
+  "Compute the sparse hash of the given string"
+  [input]
+  (let [lengths (-> input
+                  seq
+                  (#(map int %))
+                  (concat [17 31 73 47 23])
+                  vec)]
+    (loop [itr 0
+           curr-pos 0
+           skip 0
+           string (vec (range 256))]
+      (if (>= itr 64)
+        string
+        (let [[new-string new-curr new-skip] (make-hash lengths string curr-pos skip)]
+          (recur (inc itr) new-curr new-skip new-string))))))
+
+(defn to-hex [input] (format "%02x" input))
+
+(defn hexify
+  [input]
+  (->> input
+    (map to-hex)
+    string/join))
+
+(defn map-xor
+  [arr]
+  (map #(reduce bit-xor %) arr))
+
+(defn dense-hash
+  "Compute the dense hash of the given string"
+  [input]
+  (->> input
+    sparse-hash
+    (partition 16)
+    map-xor
+    hexify))
+        
 (defn -main
   "AOC Day 10 entrypoint"
   [& args]
@@ -57,7 +100,8 @@
                   first
                   slurp
                   string/trim)]
-      (let [string (make-hash input 256)
-            m (* (first string) (second string))]
+      (let [string (make-hash-string input 256)
+            m (* (first string) (second string))
+            dense (dense-hash input)]
         (println "Part 1:" m)
-        (println "Part 2: TBD")))))
+        (println "Part 2:" dense)))))
