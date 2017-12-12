@@ -36,6 +36,25 @@
                         (remove (fn [v] (some #(= % v) queue))))]
         (recur (concat connected (list curr)) (concat (rest queue) unvisited))))))
 
+(defn in-a-group?
+  [groups val]
+  (->> groups
+    (map (fn [group] (some #(= % val) group)))
+    (some true?)))
+
+(defn groups
+  "Return all the unconnected groups in the graph"
+  [graph]
+  (let [nodes (keys graph)]
+    (loop [queue nodes
+           groups []]
+      (if (empty? queue)
+        groups
+        (let [curr (first queue)]
+          (if (in-a-group? groups curr)
+            (recur (rest queue) groups)
+            (recur (rest queue) (concat groups (list (connected-nodes graph curr))))))))))
+
 (defn -main
   "AOC Day 12 entrypoint"
   [& args]
@@ -46,6 +65,7 @@
                   slurp
                   string/trim)
           pipes (build-graph input)
-          connected (connected-nodes pipes 0)]
+          connected (connected-nodes pipes 0)
+          g (groups pipes)]
       (println "Part 1:" (count connected))
-      (println "Part 2: TBD"))))
+      (println "Part 2:" (count g)))))

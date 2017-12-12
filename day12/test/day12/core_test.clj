@@ -16,3 +16,8 @@
          (let [pipes (build-graph input-str)
                connected (connected-nodes pipes 0)]
            (is (= 6 (count connected)))))
+
+(deftest part2
+         (let [pipes (build-graph input-str)
+               g (groups pipes)]
+           (is (= 2 (count g)))))
