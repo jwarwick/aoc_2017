@@ -25,6 +25,18 @@
   (let [path (string/split path-str #",")]
     (reduce take-step [0 0] path)))
 
+(defn generate-path
+  "Follow the given path, return a list of all positions"
+  [path-str]
+  (let [path-list (string/split path-str #",")]
+    (loop [path path-list
+           curr-node [0 0]
+           all-nodes [[0 0]]]
+      (if (empty? path)
+        all-nodes
+        (let [next-node (take-step curr-node (first path))]
+          (recur (rest path) next-node (conj all-nodes next-node)))))))
+
 (defn get-neighbors
   [node]
   (for [dir `("n" "ne" "se" "s" "sw" "nw")]
@@ -52,7 +64,6 @@
 (defn search
   "Search for shortest path from start to dest"
   [start dest]
-  (println "Search:" start dest)
   (loop [queue [{:node start :priority 0 :path []}]
          visited []]
     (let [curr-node (first queue)]
@@ -71,6 +82,24 @@
         path (search [0 0] dest)]
     (count path)))
 
+(defn- make-dist-entry [node] {:node node :distance (node-distance [0 0] node)})
+
+(defn max-distance
+  "Return the furthest distance on the path"
+  [input]
+  (let [nodes (generate-path input)
+        dis-nodes (distinct nodes)
+        distances (->> dis-nodes
+                    (map make-dist-entry)
+                    (sort-by :distance)
+                    reverse
+                    (take 5))
+        search-dist (->> distances
+                      (map :node)
+                      (map (partial search [0 0]))
+                      (map count))]
+    (apply max search-dist)))
+
 (defn -main
   "AOC Day 11 entrypoint"
   [& args]
@@ -81,4 +110,4 @@
                   slurp
                   string/trim)]
       (println "Part 1:" (distance-to-path input))
-      (println "Part 2: TBD"))))
+      (println "Part 2:" (max-distance input)))))

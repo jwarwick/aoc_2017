@@ -7,3 +7,7 @@
          (is (= (distance-to-path "ne,ne,sw,sw") 0))
          (is (= (distance-to-path "ne,ne,s,s") 2))
          (is (= (distance-to-path "se,sw,se,sw,sw") 3)))
+
+(deftest part2
+         (is (= (max-distance "ne,ne,ne") 3))
+         (is (= (max-distance "ne,ne,sw,sw") 2)))
