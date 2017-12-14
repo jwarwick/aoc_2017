@@ -10,5 +10,10 @@
 
 (deftest part1
          (let [firewall (build test-input)
-               severity (simulate firewall)]
+               [caught severity] (simulate firewall)]
            (is (= severity 24))))
+
+(deftest part2
+         (let [firewall (build test-input)
+               delay (min-delay firewall)]
+           (is (= delay 10))))

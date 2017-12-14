@@ -22,9 +22,12 @@
   [curr-pos firewall severity]
   (let [layer (get firewall curr-pos nil)]
     (cond
-      (nil? layer) severity
-      (not= 0 (:pos layer)) severity
-      :else (+ severity (* (:depth layer) (:range layer))))))
+      (nil? layer) [false severity]
+      (not= 0 (:pos layer)) [false severity]
+      :else
+      (do
+        [true
+         (+ severity (* (:depth layer) (:range layer)))]))))
 
 (defn update-layer
   [layer]
@@ -37,17 +40,45 @@
 
 (defn simulate
   "Simulate a packet passing through the firewall. Compute the severity of the trip."
-  [fw]
-  (let [num-layers (apply max (keys fw))]
-    (loop [curr-pos 0
-           severity 0
-           firewall fw]
-      (if (> curr-pos num-layers)
-        severity
-        (let [updated-severity (update-severity curr-pos firewall severity)
-              updated-firewall (update-firewall firewall)]
-          (recur (inc curr-pos) updated-severity updated-firewall))))))
+  ([fw] (simulate fw (apply max (keys fw)) -1 false))
+  ([fw num-layers start-pos stop-on-collision]
+   (loop [curr-pos start-pos
+          caught false
+          severity 0
+          firewall fw]
+     (if (or (> curr-pos num-layers)
+             (and stop-on-collision caught))
+       (do
+         [caught severity])
+       (let [new-pos (inc curr-pos)
+             [new-caught updated-severity] (update-severity new-pos firewall severity)
+             updated-firewall (update-firewall firewall)]
+         (recur new-pos new-caught updated-severity updated-firewall))))))
 
+(defn test-config
+  "Check if a given delay can get through all the layers"
+  [delay layers-start]
+  (loop [layers layers-start]
+    (if (empty? layers)
+      true
+      (let [[depth length] (first layers)]
+        (if (= 0 (mod (+ delay depth) length))
+          false
+          (recur (rest layers)))))))
+
+(defn min-delay
+  "Determine the minimum number of picoseconds to delay so that we can get through the firewall with a collision"
+  [firewall]
+  (let [layers (->> firewall
+                 vals
+                 (sort-by :length)
+                 (map #(list (:depth %) (:length %)))
+                 (map #(into [] %)))]
+    (loop [delay 0]
+      (let [success (test-config delay layers)]
+        (if success
+          delay
+          (recur (inc delay)))))))
 
 (defn -main
   "AOC Day 13 entrypoint"
@@ -59,6 +90,7 @@
                   slurp
                   string/trim)
           firewall (build input)
-          severity (simulate firewall)]
+          [caught severity] (simulate firewall)
+          delay (min-delay firewall)]
       (println "Part 1:" severity)
-      (println "Part 2: TBD"))))
+      (println "Part 2:" delay))))
