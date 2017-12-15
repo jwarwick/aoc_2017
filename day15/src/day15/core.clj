@@ -11,6 +11,35 @@
 (def mod-a (BigInteger. "4"))
 (def mod-b (BigInteger. "8"))
 
+(defn part1-iterate
+  "An attempt to make things faster"
+  [a-start b-start]
+  (let [samples 40000000
+        gen-a (iterate #(rem (* 16807 %) 2147483647) a-start)
+        gen-b (iterate #(rem (* 48271 %) 2147483647) b-start)]
+    (count (for [[a-val b-val] (map vector (take (inc samples) gen-a) (take (inc samples) gen-b))
+                 :when (= (bit-and a-val 0xffff) (bit-and b-val 0xffff))]
+             true))))
+
+(defn generate-next-value-iterate
+  "Generate the next valid value"
+  [factor mod-value curr-start]
+  (loop [curr curr-start]
+    (let [next-val (rem (* factor curr) 2147483647)]
+      (if (= 0 (rem next-val mod-value))
+        next-val
+        (recur next-val)))))
+
+(defn part2-iterate
+  "An attempt to make things faster (for part2)"
+  [a-start b-start]
+  (let [samples 5000000
+        gen-a (iterate (partial generate-next-value-iterate 16807 4) a-start)
+        gen-b (iterate (partial generate-next-value-iterate 48271 8) b-start)]
+    (count (for [[a-val b-val] (map vector (take (inc samples) gen-a) (take (inc samples) gen-b))
+                 :when (= (bit-and a-val 0xffff) (bit-and b-val 0xffff))]
+             true))))
+
 (defn count-matches-part1
   "Return number of low order 16-bit matches between two generators"
   [a-start b-start]
@@ -65,7 +94,7 @@
   [& args]
   (let [a-start 883
         b-start 879
-        ;; matches (count-matches-part1 a-start b-start)
-        matches (count-matches-part2 a-start b-start)]
-    ;; (println "Part 1:" matches)
-    (println "Part 2:" matches)))
+        part1-matches (part1-iterate a-start b-start)
+        part2-matches (part2-iterate a-start b-start)]
+    (println "Part 1:" part1-matches)
+    (println "Part 2:" part2-matches)))
