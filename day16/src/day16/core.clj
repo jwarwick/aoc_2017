@@ -39,12 +39,27 @@
 
 (defn dance
   "Perform the dance specified in the input string"
-  [input dancer-count]
+  [input ^long dancer-count]
   (let [dancers (map char (range 97 (+ 97 dancer-count)))]
     (->> (string/split input #",")
       (map make-step)
       (reduce (fn [acc step] (step acc)) dancers)
       string/join)))
+
+(defn multi-dance
+  "Perform a dance multiple times. Will run until we find a cycle..."
+  [input ^long dancer-count ^long dances]
+  (let [dancers-start (map char (range 97 (+ 97 dancer-count)))
+        the-dance (->> (string/split input #",")
+                    (map make-step))]
+    (loop [cnt 0
+           dancers dancers-start
+           seen (list dancers-start)]
+      (let [new-dancers (reduce (fn [acc step] (step acc)) dancers the-dance)] 
+        (if (some #(= new-dancers %) seen)
+          (let [r (rem dances (inc cnt))]
+            (string/join (nth seen r)))
+          (recur (inc cnt) new-dancers (concat seen (list new-dancers))))))))
 
 (defn -main
   "AOC Day 16 entrypoint"
@@ -56,4 +71,4 @@
                   slurp
                   string/trim)]
       (println "Part 1:" (dance input 16))
-      (println "Part 2: TBD"))))
+      (println "Part 2:" (multi-dance input 16 1000000000)))))
