@@ -70,11 +70,12 @@
   [start tubes rows cols]
   (loop [curr start
          last-direction :down
-         path nil]
+         path nil
+         steps 1]
     (let [[neighbor direction new-path] (get-neighbor curr last-direction tubes path rows cols)]
       (if (nil? neighbor)
-        (string/join path)
-        (recur neighbor direction new-path)))))
+        [(string/join path) steps]
+        (recur neighbor direction new-path (inc steps))))))
 
 (defn tube-path
   "Return the letters passed on the path out of the tubes"
@@ -88,7 +89,6 @@
                 vec)
         start-col (.indexOf tubes {:type :vertical})
         start [0 start-col]]
-    (println rows cols)
     (doseq [x lines]
       (println x)
       )
@@ -101,6 +101,7 @@
     (println "Expected a path to the input file")
     (let [input (->> args
                   first
-                  slurp)]
-      (println "Part 1:" (tube-path input))
-      (println "Part 2:" "TBD"))))
+                  slurp)
+          [path steps] (tube-path input)]
+      (println "Part 1:" path)
+      (println "Part 2:" steps))))

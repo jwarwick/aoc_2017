@@ -12,4 +12,10 @@
 ")
 
 (deftest part1
-    (is (= "ABCDEF" (tube-path input))))
+         (let [[path steps] (tube-path input)]
+           (is (= "ABCDEF" path))))
+
+(deftest part2
+         (let [[path steps] (tube-path input)]
+           (is (= 38 steps))))
+
