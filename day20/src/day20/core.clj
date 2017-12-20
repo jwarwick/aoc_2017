@@ -71,6 +71,43 @@
       first
       :idx)))
 
+(defn update-dim
+  "Update the position and velocity for one dimension"
+  [[^long p ^long v ^long a]]
+  (let [new-v (+ v a)
+        new-p (+ p new-v)]
+    [new-p new-v a]))
+
+(defn update-particle
+  "Update the position of one particle"
+  [particle]
+  (let [p (:p particle)
+        v (:v particle)
+        a (:a particle)
+        comb (map vector p v a)
+        [x y z] (vec (map update-dim comb))
+        [new-p new-v new-a] (map vector x y z)]
+    (assoc particle :p new-p :v new-v)))
+
+(defn update-particles
+  "Update the position of all the particles"
+  [particles]
+  (map update-particle particles))
+
+(defn simulate
+  "Run the colliding particle simulation and return number of remaining particles"
+  [start-particles]
+  (let [t 20000]
+    (loop [step 0
+           particles start-particles]
+      (if (= step t)
+        (count particles)
+        (do
+          (let [new-particles (update-particles particles)
+                freq (frequencies (map :p new-particles))
+                non-collided (filter #(= 1 (get freq (:p %))) new-particles)]
+            (recur (inc step) non-collided)))))))
+
 (defn -main
   "AOC Day 20 entrypoint"
   [& args]
@@ -82,4 +119,4 @@
                   string/trim)
           particles (make-particles input)]
       (println "Part 1: " (closest particles))
-      (println "Part 2: " "TBD"))))
+      (println "Part 2: " (simulate particles)))))
