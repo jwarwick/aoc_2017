@@ -94,7 +94,7 @@
         combined (map #(apply map vector %) new-patterns)
         combflat (map #(map flatten %) combined)
         join (map vec (reduce concat combflat))]
-    (print-pattern "Join" join)
+    (print-pattern join)
     join))
 
 (defn fractal-art
@@ -110,14 +110,9 @@
            pattern start]
       (if (= cnt steps)
         pattern
-        (recur (inc cnt) (iterate-art rules pattern))))))
-
-(defn part1
-  "Compute part1 output (number of pixels on after 5 iterations"
-  [input]
-  (-> input
-    (fractal-art 5)
-    count-pixels))
+        (do
+          (println "Step" cnt)
+          (recur (inc cnt) (iterate-art rules pattern)))))))
 
 (defn -main
   "AOC Day 21 entrypoint"
@@ -128,5 +123,5 @@
                   first
                   slurp
                   string/trim)]
-      (println "Part 1: " (part1 input))
-      (println "Part 2: " "TBD"))))
+      (println "Part 1: " (count-pixels (fractal-art input 5)))
+      (println "Part 2: " (count-pixels (fractal-art input 18))))))
