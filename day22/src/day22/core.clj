@@ -27,10 +27,28 @@
     :down :right
     :right :up))
 
+(defn turn-reverse
+  "Reverse the current direction"
+  [dir]
+  (case dir
+    :up :down
+    :left :right
+    :down :up
+    :right :left))
+
 (defn turn
   "Pick a new heading based on the infection state"
   [infected dir]
   (if infected (turn-right dir) (turn-left dir)))
+
+(defn enhanced-turn
+  "Pick a new heading based on the node state"
+  [node-state dir]
+  (case node-state
+    :clean (turn-left dir)
+    :weakened dir
+    :infected (turn-right dir)
+    :flagged (turn-reverse dir)))
 
 (defn move
   "Move in the given direction"
@@ -41,9 +59,9 @@
     :down [x (inc y)]
     :left [(dec x) y]))
 
-(defn infection-count
-  "Return the number of bursts that caused a new infection"
-  [input-str steps]
+(defn parse-input
+  "Parse the input string"
+  [input-str]
   (let [input (->> input-str
                 string/split-lines
                 (map vec)
@@ -54,6 +72,12 @@
                      (apply concat)
                      (filter #(= \# (last %)))
                      (into {}))]
+    [[cx cy] infect-map]))
+
+(defn infection-count
+  "Return the number of bursts that caused a new infection"
+  [input-str steps]
+  (let [[[cx cy] infect-map] (parse-input input-str)]
     (loop [step 0
            curr [cx cy]
            direction :up
@@ -68,6 +92,36 @@
               new-pos (move curr new-direction)]
           (recur (inc step) new-pos new-direction new-infections new-infection-count))))))
 
+(defn update-node-state
+  "Update the infection state of the given node"
+  [infections node curr-state]
+  (case curr-state
+    :clean (assoc infections node :weakened)
+    :weakened (assoc infections node :infected)
+    :infected (assoc infections node :flagged)
+    :flagged (dissoc infections node)))
+
+(defn enhanced-infection-count
+  "Return the number of bursts that caused a new infection using the enhanced virus"
+  [input-str steps]
+  (let [[[cx cy] infect-map-orig] (parse-input input-str)
+        infect-map (reduce-kv (fn [acc k v] (assoc acc k :infected)) {} infect-map-orig)]
+    (loop [step 0
+           curr [cx cy]
+           direction :up
+           infections infect-map
+           infection-count 0]
+      (if (= step steps)
+        infection-count
+        (let [node-state (get infections curr :clean)
+              new-direction (enhanced-turn node-state direction)
+              new-infections (update-node-state infections curr node-state)
+              new-infection-count (if (= :weakened node-state)
+                                    (inc infection-count)
+                                    infection-count)
+              new-pos (move curr new-direction)]
+          (recur (inc step) new-pos new-direction new-infections new-infection-count))))))
+
 (defn -main
   "AOC Day 22 entrypoint"
   [& args]
@@ -78,4 +132,4 @@
                   slurp
                   string/trim)]
       (println "Part 1: " (infection-count input 10000))
-      (println "Part 2: " "TBD"))))
+      (println "Part 2: " (enhanced-infection-count input 10000000)))))
