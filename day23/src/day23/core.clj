@@ -52,20 +52,57 @@
      (parse-arg (second args))
      (when (= 3 (count args)) (parse-arg (last args)))]))
 
-(defn mul-count
-  "Return the number of mul instructions executed"
-  [input-str]
-  (let [prg (->> input-str
-              string/split-lines
-              (mapv make-instruction))
-        prg-len (count prg)]
-    (loop [state {:pc 0 :mul-count 0}]
-      (let [^long pc (:pc state)]
-        (if (or (< pc 0) (>= pc prg-len))
-          (do
-            (:mul-count state))
-          (let [inst (get prg pc)]
-            (recur ((first inst) (rest inst) state))))))))
+(defn print-reg
+  "Print registers"
+  [state]
+  (println (select-keys state [:pc "a" "b" "c" "d" "e" "f" "g" "h"])))
+
+(defn run
+  "Run the program"
+  ([input-str] (run input-str false))
+  ([input-str debug]
+   (let [prg (->> input-str
+               string/split-lines
+               (mapv make-instruction))
+         prg-len (count prg)
+         debug-map (if debug {"a" 0} {"a" 1})]
+     (loop [state (merge debug-map {:pc 0 :mul-count 0})]
+       (let [^long pc (:pc state)]
+         ;; (print-reg state)
+         (if (or (< pc 0) (>= pc prg-len))
+           state
+           (let [inst (get prg pc)]
+             (recur ((first inst) (rest inst) state)))))))))
+
+(defn part1
+  "Count the number of mul instructions"
+  [input]
+  (:mul-count (run input true)))
+
+(defn part2
+  "Return the value of the h register"
+  [input]
+  (:h (run input)))
+
+(defn root-1 [x]
+    (inc (long (Math/sqrt x))))
+
+(defn range-1 [x]
+  (range 2 (root-1 x)))
+
+(defn filter-1 [x]
+  (filter #(zero? (rem x %))
+        (range-1 x)))
+
+(defn is-prime [x]
+  (nil? (first (filter-1 x))))
+
+(defn part2-native
+  "Clojure implementation of the part2 problem. How many numbers are not prime in the range 106700 to 123700 with a step size of 17."
+  []
+  (->> (range 106700 (inc 123700) 17)
+    (remove is-prime)
+    count))
 
 (defn -main
   "AOC Day 23 entrypoint"
@@ -76,5 +113,5 @@
                   first
                   slurp
                   string/trim)]
-      (println "Part 1:" (mul-count input))
-      (println "Part 2:" "TBD"))))
+      (println "Part 1:" (part1 input))
+      (println "Part 2:" (part2-native)))))
