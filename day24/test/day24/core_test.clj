@@ -13,4 +13,9 @@
 9/10")
 
 (deftest part1-test
-    (is (= 31 (max-strength part1-input))))
+         (let [b (build part1-input)]
+           (is (= 31 (max-strength b)))))
+
+(deftest part2-test
+         (let [b (build part1-input)]
+           (is (= 19 (longest-strength b)))))

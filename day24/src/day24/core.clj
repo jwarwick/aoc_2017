@@ -45,20 +45,33 @@
                  :path nil
                  :comps comps
                  :strength 0}))
-  
-(defn max-strength
-  "Determine the strongest bridge that can be built from the given components"
+
+(defn build
   [input-str]
   (let [comps (->> input-str
                 string/split-lines
                 (map #(string/split % #"/"))
-                (map (fn [[x y]] [(Integer/parseInt x) (Integer/parseInt y)])))
-        bridges (build-bridges 0 comps)]
-    (->> bridges
-      flatten
-      (sort-by :strength)
-      last
-      :strength)))
+                (map (fn [[x y]] [(Integer/parseInt x) (Integer/parseInt y)])))]
+    (build-bridges 0 comps)))
+  
+(defn max-strength
+  "Determine the strongest bridge that can be built from the given components"
+  [bridges]
+  (->> bridges
+    flatten
+    (sort-by :strength)
+    last
+    :strength))
+
+(defn longest-strength
+  "Find the strongest of the longest bridges"
+  [bridges]
+  (let [length-map (->> bridges
+                     flatten
+                     (group-by #(count (:path %))))
+        longest (apply max (keys length-map))
+        longest-bridges (length-map longest)]
+    (max-strength longest-bridges)))
 
 (defn -main
   "AOC Day 24 entrypoint"
@@ -68,6 +81,7 @@
     (let [input (->> args
                   first
                   slurp
-                  string/trim)]
-      (println "Part 1:" (max-strength input))
-      (println "Part 2:" "TBD"))))
+                  string/trim)
+          bridges (build input)]
+      (println "Part 1:" (max-strength bridges))
+      (println "Part 2:" (longest-strength bridges)))))
